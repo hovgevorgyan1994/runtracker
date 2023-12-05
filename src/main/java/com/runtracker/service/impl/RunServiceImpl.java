@@ -1,5 +1,6 @@
 package com.runtracker.service.impl;
 
+import static com.runtracker.exception.Error.RUN_ALREADY_FINISHED;
 import static com.runtracker.exception.Error.RUN_NOT_FOUND;
 import static com.runtracker.utils.CalculationUtils.averageSpeed;
 import static com.runtracker.utils.CalculationUtils.calculateDistance;
@@ -10,7 +11,6 @@ import com.runtracker.dto.run.FinishRunRequest;
 import com.runtracker.dto.run.RunResponse;
 import com.runtracker.dto.run.StartRunRequest;
 import com.runtracker.dto.run.UserStatisticsResponse;
-import com.runtracker.entity.Run;
 import com.runtracker.exception.AlreadyFinishedException;
 import com.runtracker.exception.NotFoundException;
 import com.runtracker.mapper.RunMapper;
@@ -53,7 +53,7 @@ public class RunServiceImpl implements RunService {
             });
     if (run.isFinished()) {
       log.warn("You cannot finished the already finished Run.");
-      throw new AlreadyFinishedException(Error.RUN_ALREADY_FINISHED);
+      throw new AlreadyFinishedException(RUN_ALREADY_FINISHED);
     }
     //set operations will change the persistent entity after the commit
     //because the method gets executed in a Spring Transaction
@@ -69,7 +69,7 @@ public class RunServiceImpl implements RunService {
 
   @Override
   public List<RunResponse> getUserRuns(Long userId, LocalDateTime fromDatetime,
-      LocalDateTime toDatetime) {
+                                       LocalDateTime toDatetime) {
     log.info("Attempt to get all User Runs. ID: {}", userId);
     var runs = runRepository.findByUserIdAndStartDatetimeBetween(userId, fromDatetime, toDatetime);
     if (runs.isEmpty()) {
@@ -78,13 +78,13 @@ public class RunServiceImpl implements RunService {
     }
     log.info("{} Runs were found for user with ID: {}", runs.size(), userId);
     return runs.stream()
-        .map(runMapper::mapToDto)
-        .toList();
+            .map(runMapper::mapToDto)
+            .toList();
   }
 
   @Override
   public UserStatisticsResponse getUserStatistics(Long userId, LocalDateTime fromDatetime,
-      LocalDateTime toDatetime) {
+                                                  LocalDateTime toDatetime) {
     log.info("Attempt to get User Statistics. ID: {}", userId);
     var runs = getUserRuns(userId, fromDatetime, toDatetime);
     if (runs.isEmpty()) {
