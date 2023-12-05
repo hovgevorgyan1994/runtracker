@@ -25,10 +25,6 @@ public class RunMapperImpl implements RunMapper {
 
   @Override
   public RunResponse mapToDto(Run run) {
-    Double averageSpeed = null;
-    if (run.isFinished()) {
-      averageSpeed = averageSpeed(run);
-    }
     return RunResponse.of(
         run.getId(),
         run.getUser().getId(),
@@ -39,6 +35,6 @@ public class RunMapperImpl implements RunMapper {
         run.getFinishLongitude(),
         run.getFinishDatetime(),
         run.getDistance(),
-        averageSpeed);
+        run.isFinished() ? averageSpeed(run) : null);
   }
 }
