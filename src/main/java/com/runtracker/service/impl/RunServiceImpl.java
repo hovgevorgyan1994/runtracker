@@ -84,10 +84,13 @@ public class RunServiceImpl implements RunService {
     log.info("Attempt to get User Statistics. ID: {}", userId);
     var runs = getUserRuns(userId, fromDatetime, toDatetime);
     if (runs.isEmpty()) {
+      log.info("No statistics found for user ID: {}", userId);
       return UserStatisticsResponse.EMPTY;
     }
     long totalRuns = runs.size();
-    return UserStatisticsResponse.of(totalRuns, totalDistance(runs), averageSpeed(runs));
+    var response = UserStatisticsResponse.of(totalRuns, totalDistance(runs), averageSpeed(runs));
+    log.info("Statistics calculated for user ID {}. Result: {}", userId, response);
+    return response;
   }
 
   private Run getRun(FinishRunRequest request) {
