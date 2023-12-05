@@ -32,4 +32,8 @@ public class Run {
   private Double finishLongitude;
   private LocalDateTime finishDatetime;
   private Double distance;
+
+  public boolean isFinished(){
+    return this.finishDatetime != null;
+  }
 }
