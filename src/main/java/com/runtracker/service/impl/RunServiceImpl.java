@@ -11,6 +11,7 @@ import com.runtracker.dto.run.RunResponse;
 import com.runtracker.dto.run.StartRunRequest;
 import com.runtracker.dto.run.UserStatisticsResponse;
 import com.runtracker.entity.Run;
+import com.runtracker.exception.AlreadyFinishedException;
 import com.runtracker.exception.NotFoundException;
 import com.runtracker.mapper.RunMapper;
 import com.runtracker.repository.RunRepository;
@@ -46,7 +47,10 @@ public class RunServiceImpl implements RunService {
   public RunResponse finish(FinishRunRequest request) {
     log.info("Attempt to finish a Run. {}", request);
     var run = getRun(request);
-
+    if(run.isFinished()){
+      log.warn("You cannot finished the already finished Run.");
+      throw new AlreadyFinishedException(Error.RUN_ALREADY_FINISHED);
+    }
     //set operations will change the persistent entity after the commit
     //because the method gets executed in a Spring Transaction
     run.setFinishLatitude(request.getFinishLatitude());

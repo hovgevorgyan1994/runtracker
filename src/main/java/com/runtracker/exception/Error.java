@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 public enum Error {
 
   CONSTRAINT_VIOLATION(BAD_REQUEST, 4001, "There is an invalid value in user input."),
+  RUN_ALREADY_FINISHED(BAD_REQUEST,4002 ,"The Run is already finished."),
   USER_ALREADY_EXISTS(CONFLICT, 4091, "There is a user registered with such email."),
   USER_NOT_FOUND(NOT_FOUND, 4041, "There is no user with given id."),
   RUN_NOT_FOUND(NOT_FOUND, 4042, "There is no run with given id.");
