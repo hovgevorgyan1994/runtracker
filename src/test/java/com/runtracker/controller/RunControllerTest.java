@@ -1,7 +1,8 @@
 package com.runtracker.controller;
 
+import static com.runtracker.parameters.RunTestParams.finishedRun;
 import static com.runtracker.parameters.RunTestParams.invalidStartRunRequest;
-import static com.runtracker.parameters.RunTestParams.run;
+import static com.runtracker.parameters.RunTestParams.unfinishedRun;
 import static com.runtracker.parameters.RunTestParams.runResponse;
 import static com.runtracker.parameters.RunTestParams.validFinishRunRequest;
 import static com.runtracker.parameters.RunTestParams.validStartRunRequest;
@@ -51,7 +52,7 @@ public class RunControllerTest {
   void setUp() {
     var user = user();
     userRepository.save(user);
-    runRepository.save(run(user));
+    runRepository.save(finishedRun(user));
   }
 
   @AfterEach
@@ -66,17 +67,17 @@ public class RunControllerTest {
     var expected = runResponse(request);
 
     var mvcResult = mockMvc.perform(post("/runs/start")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated())
-        .andReturn();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andReturn();
 
     var actual = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        RunResponse.class);
+            RunResponse.class);
 
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
@@ -84,19 +85,20 @@ public class RunControllerTest {
     var request = invalidStartRunRequest();
 
     mockMvc.perform(post("/runs/start")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
   }
 
   @Test
   void shouldFinishRunSuccessfully() throws Exception {
     var request = validFinishRunRequest();
+    runRepository.save(unfinishedRun(user()));
 
     mockMvc.perform(post("/runs/finish")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
   }
 
   @Test
@@ -104,9 +106,9 @@ public class RunControllerTest {
     var request = invalidStartRunRequest();
 
     mockMvc.perform(post("/runs/finish")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -115,16 +117,16 @@ public class RunControllerTest {
     var expected = List.of(runResponse());
 
     var mvcResult = mockMvc.perform(get("/runs/{userId}", userId)
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk()).andReturn();
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
 
     var actual = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        new TypeReference<List<RunResponse>>() {
-        });
+            new TypeReference<List<RunResponse>>() {
+            });
 
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
@@ -132,7 +134,7 @@ public class RunControllerTest {
     var userId = 1L;
 
     mockMvc.perform(get("/runs/statistics/{userId}", userId)
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
   }
 }

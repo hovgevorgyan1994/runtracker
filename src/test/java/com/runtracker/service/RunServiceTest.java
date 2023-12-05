@@ -1,7 +1,9 @@
 package com.runtracker.service;
 
+import static com.runtracker.parameters.RunTestParams.finishedRun;
+import static com.runtracker.parameters.RunTestParams.invalidFinishRunRequest;
 import static com.runtracker.parameters.RunTestParams.validFinishRunRequest;
-import static com.runtracker.parameters.RunTestParams.run;
+import static com.runtracker.parameters.RunTestParams.unfinishedRun;
 import static com.runtracker.parameters.RunTestParams.runResponse;
 import static com.runtracker.parameters.RunTestParams.validStartRunRequest;
 import static com.runtracker.parameters.RunTestParams.userStatisticsResponse;
@@ -12,6 +14,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import com.runtracker.dto.run.UserStatisticsResponse;
+import com.runtracker.entity.Run;
+import com.runtracker.exception.AlreadyFinishedException;
 import com.runtracker.exception.BaseException;
 import com.runtracker.mapper.RunMapper;
 import com.runtracker.parameters.RunTestParams;
@@ -43,7 +47,7 @@ public class RunServiceTest {
     //given
     var request = validStartRunRequest();
     var user = user();
-    var run = run(user);
+    var run = unfinishedRun(user);
     var expected = RunTestParams.runResponse();
 
     //when
@@ -56,15 +60,15 @@ public class RunServiceTest {
 
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
   void shouldFinishRunSuccessfully() {
     //given
     var request = validFinishRunRequest();
-    var run = run(user());
+    var run = unfinishedRun(user());
     var expected = RunTestParams.runResponse();
 
     //when
@@ -75,8 +79,8 @@ public class RunServiceTest {
 
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
@@ -89,14 +93,27 @@ public class RunServiceTest {
 
     //then
     assertThrows(BaseException.class,
-        () -> runService.finish(request));
+            () -> runService.finish(request));
+  }
+
+  @Test
+  void shouldFailFinishRunAsAlreadyFinished() {
+    //given
+    var request = invalidFinishRunRequest();
+    var finishedRun = finishedRun(user());
+
+    //when
+    doReturn(Optional.of(finishedRun)).when(runRepository).findById(any());
+
+    //then
+    assertThrows(AlreadyFinishedException.class, () -> runService.finish(request));
   }
 
   @Test
   void shouldGetUserRuns() {
     //given
     var id = 1L;
-    var runs = List.of(run(null));
+    var runs = List.of(unfinishedRun(null));
     var expected = List.of(runResponse());
 
     //when
@@ -106,8 +123,8 @@ public class RunServiceTest {
     var actual = runService.getUserRuns(id, LocalDateTime.MAX, LocalDateTime.MAX);
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
@@ -123,15 +140,15 @@ public class RunServiceTest {
     var actual = runService.getUserRuns(id, LocalDateTime.MAX, LocalDateTime.MAX);
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
   void shouldGetUserStatisticsSuccessfully() {
     //given
     var id = 1L;
-    var runs = List.of(run(null));
+    var runs = List.of(unfinishedRun(null));
     var expected = userStatisticsResponse();
 
     //when
@@ -139,12 +156,12 @@ public class RunServiceTest {
     doReturn(runResponse()).when(runMapper).mapToDto(any());
 
     var actual = runService.getUserStatistics(id, LocalDateTime.MAX,
-        LocalDateTime.MAX);
+            LocalDateTime.MAX);
 
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 
   @Test
@@ -161,7 +178,7 @@ public class RunServiceTest {
 
     //then
     assertThat(actual)
-        .isNotNull()
-        .isEqualTo(expected);
+            .isNotNull()
+            .isEqualTo(expected);
   }
 }
