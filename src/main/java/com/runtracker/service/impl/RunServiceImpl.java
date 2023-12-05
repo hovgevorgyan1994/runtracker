@@ -46,8 +46,12 @@ public class RunServiceImpl implements RunService {
   @Override
   public RunResponse finish(FinishRunRequest request) {
     log.info("Attempt to finish a Run. {}", request);
-    var run = getRun(request);
-    if(run.isFinished()){
+    var run = runRepository.findById(request.getRunId())
+            .orElseThrow(() -> {
+              log.info("No Run was found with ID: {}", request.getRunId());
+              return new NotFoundException(RUN_NOT_FOUND);
+            });
+    if (run.isFinished()) {
       log.warn("You cannot finished the already finished Run.");
       throw new AlreadyFinishedException(Error.RUN_ALREADY_FINISHED);
     }
@@ -57,8 +61,8 @@ public class RunServiceImpl implements RunService {
     run.setFinishLongitude(request.getFinishLongitude());
     run.setFinishDatetime(LocalDateTime.now());
     run.setDistance(
-        calculateDistance(run.getStartLatitude(), run.getStartLongitude(),
-            run.getFinishLatitude(), run.getFinishLongitude()));
+            calculateDistance(run.getStartLatitude(), run.getStartLongitude(),
+                    run.getFinishLatitude(), run.getFinishLongitude()));
     log.info("Successfully finished a Run. {}", run);
     return runMapper.mapToDto(run);
   }
@@ -91,14 +95,5 @@ public class RunServiceImpl implements RunService {
     var response = UserStatisticsResponse.of(totalRuns, totalDistance(runs), averageSpeed(runs));
     log.info("Statistics calculated for user ID {}. Result: {}", userId, response);
     return response;
-  }
-
-  private Run getRun(FinishRunRequest request) {
-    return runRepository.findById(request.getRunId())
-        .orElseThrow(() -> {
-          log.info("No Run was found with ID: {}", request.getRunId());
-          return new NotFoundException(RUN_NOT_FOUND);
-
-        });
   }
 }
